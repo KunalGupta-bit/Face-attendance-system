@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Attendance System | Teacher Portal</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glass { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .console { background: #0f172a; color: #22c55e; font-family: monospace; border-left: 4px solid #3b82f6; }
+        .gradient { background: linear-gradient(135deg, #2563eb, #9333ea); }
+        .nav-link { transition: all 0.3s; cursor: pointer; }
+        .active-link { background-color: #1e293b; border-left: 4px solid #3b82f6; }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+<div class="flex h-screen overflow-hidden">
+
+    <div class="w-64 bg-gray-900 text-white flex flex-col shadow-xl">
+        <div class="p-6 text-xl font-bold border-b border-gray-800 flex items-center gap-2">
+            <span class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></span>
+            AI Attendance
+        </div>
+
+        <nav id="sidebar-nav" class="flex-1 p-4 space-y-2 text-sm mt-4">
+            <a onclick="showView('dashboard', this)" class="nav-link block px-4 py-3 rounded-lg active-link">Dashboard</a>
+            <a onclick="showView('students', this)" class="nav-link block px-4 py-3 rounded-lg hover:bg-gray-800">Students List</a>
+            <a onclick="showView('reports', this)" class="nav-link block px-4 py-3 rounded-lg hover:bg-gray-800">Attendance Reports</a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800 text-[10px] text-gray-500 uppercase tracking-widest text-center">
+            v2.0 Beta • Face Recognition
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-y-auto bg-[#f8fafc]">
+
+        <header class="h-20 bg-white border-b flex items-center justify-between px-8 shrink-0 shadow-sm">
+            <h1 id="view-title" class="text-xl font-bold text-gray-800">Dashboard</h1>
+            
+            <div id="lecture-controls" class="flex items-center gap-3">
+                <input id="teacherId" placeholder="Teacher ID" class="border px-4 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none w-32"/>
+                <button onclick="createLecture()" class="gradient text-white px-5 py-2 rounded-lg text-sm font-medium shadow-lg hover:scale-105 transition-transform">
+                    Start Lecture
+                </button>
+            </div>
+        </header>
+
+        <main class="p-8">
+
+            <div id="view-dashboard" class="space-y-8">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 glass p-6 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-semibold text-gray-700">Live Recognition</h2>
+                            <span class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-bold">LIVE</span>
+                        </div>
+                        <video id="video" autoplay class="rounded-xl border bg-black w-full shadow-inner aspect-video object-cover"></video>
+                        <canvas id="canvas" class="hidden"></canvas>
+                        
+                        <div class="flex gap-4 mt-6">
+                            <button onclick="takeSnapshot('register')" class="flex-1 bg-white border-2 border-green-600 text-green-700 font-bold py-3 rounded-xl hover:bg-green-600 hover:text-white transition-colors">
+                                Register Face
+                            </button>
+                            <button onclick="takeSnapshot('attendance')" class="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200">
+                                Mark Attendance
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass p-6 rounded-2xl shadow-sm border-t-4 border-blue-500">
+                            <h3 class="text-sm font-bold text-gray-400 uppercase mb-4">Session Info</h3>
+                            <p class="text-xs text-gray-500 mb-1">Active Lecture ID</p>
+                            <div id="currentLecture" class="bg-gray-100 text-gray-800 px-4 py-3 rounded-lg font-mono text-sm break-all">None</div>
+                        </div>
+
+                        <div class="console p-5 rounded-2xl shadow-xl h-64 overflow-y-auto text-[11px] leading-relaxed" id="console">
+                            <span class="text-blue-400">System ready for teacher login...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="glass p-8 rounded-2xl shadow-sm">
+                        <h2 class="font-bold text-gray-800 mb-6">Manual Student Registration</h2>
+                        <div class="space-y-4">
+                            <input id="name" placeholder="Full Name" class="w-full border p-3 rounded-xl bg-gray-50 focus:bg-white transition-all"/>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input id="roll" placeholder="Roll Number" class="border p-3 rounded-xl bg-gray-50"/>
+                                <input id="semester" placeholder="Semester" class="border p-3 rounded-xl bg-gray-50"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-8 rounded-2xl shadow-sm">
+                        <h2 class="font-bold text-gray-800 mb-6">Bulk Data Upload</h2>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Excel File</label>
+                                <input type="file" id="excelFile" class="text-xs block w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Images ZIP</label>
+                                <input type="file" id="zipFile" class="text-xs block w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"/>
+                            </div>
+                        </div>
+                        <button onclick="uploadBulk()" class="w-full bg-gray-900 text-white py-3 rounded-xl font-bold hover:bg-black transition-all">
+                            Process Bulk Registration
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-students" class="hidden animate-in fade-in duration-500">
+                <div class="glass rounded-2xl shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="p-5 text-xs font-bold text-gray-500 uppercase">Student Name</th>
+                                <th class="p-5 text-xs font-bold text-gray-500 uppercase">Roll No.</th>
+                                <th class="p-5 text-xs font-bold text-gray-500 uppercase">Semester</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-table-body" class="text-gray-700 divide-y divide-gray-100">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-reports" class="hidden animate-in fade-in duration-500">
+                <div class="flex justify-end mb-4">
+                    <button onclick="exportToCSV()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                        📥 Download Excel/CSV
+                    </button>
+                </div>
+                <div class="glass rounded-2xl shadow-sm overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="p-5 text-xs font-bold text-gray-500 uppercase">Name</th>
+                                <th class="p-5 text-xs font-bold text-gray-500 uppercase">Lecture ID</th>
+                                <th class="p-5 text-xs font-bold text-gray-500 uppercase">Date/Time</th>
+                                <th class="p-5 text-xs font-bold text-gray-500 uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendance-table-body" class="text-gray-700 divide-y divide-gray-100">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const logBox = document.getElementById("console");
+    let activeLectureId = null;
+
+    // View Management
+    function showView(view, element) {
+        // Switch Views
+        document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById('view-' + view).classList.remove('hidden');
+
+        // Update Nav Styling
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active-link'));
+        element.classList.add('active-link');
+
+        // Update Title
+        document.getElementById('view-title').innerText = view.charAt(0).toUpperCase() + view.slice(1);
+
+        // Fetch Data if needed
+        if (view === 'students') fetchStudents();
+        if (view === 'reports') fetchReports();
+    }
+
+    // Camera Init
+    navigator.mediaDevices.getUserMedia({video:true})
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => log("Camera Error: " + err));
+
+    function log(msg){
+        const time = new Date().toLocaleTimeString();
+        logBox.innerHTML += `<br><span class="text-gray-500">[${time}]</span> ${msg}`;
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    // Backend Logic
+    async function createLecture(){
+        const teacherId = document.getElementById("teacherId").value;
+        if(!teacherId) return alert("Enter Teacher ID");
+
+        try {
+            const res = await fetch("http://127.0.0.1:5000/api/lecture/create", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ course_id: "CS101", teacher_id: teacherId })
+            });
+            const data = await res.json();
+            activeLectureId = data.lecture_id;
+            document.getElementById("currentLecture").innerText = activeLectureId;
+            log(`<span class="text-purple-400 font-bold">Lecture started by ${teacherId}</span>`);
+        } catch(e) { log("Error creating lecture: " + e); }
+    }
+
+    function takeSnapshot(type){
+        const ctx = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        const image = canvas.toDataURL("image/jpeg", 0.8);
+        if(type === "register") registerStudent(image);
+        else markAttendance(image);
+    }
+
+    async function registerStudent(image){
+        const name = document.getElementById("name").value;
+        const roll = document.getElementById("roll").value;
+        const semester = document.getElementById("semester").value;
+        if(!name || !roll) return alert("Enter Name and Roll");
+
+        log(`Attempting to register ${name}...`);
+        const res = await fetch("http://127.0.0.1:5000/api/student/register", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ name, roll, semester, image })
+        });
+        const data = await res.json();
+        log(data.message || data.error);
+    }
+
+    async function markAttendance(image){
+        if(!activeLectureId) return alert("Start Lecture First");
+        log("Searching for registered faces...");
+        const res = await fetch("http://127.0.0.1:5000/api/attendance/mark", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ lecture_id: activeLectureId, image: image })
+        });
+        const data = await res.json();
+        if(data.students_marked && data.students_marked.length > 0){
+            log(`<span class="text-green-400 font-bold">Marked Present: ${data.students_marked.join(", ")}</span>`);
+        } else {
+            log(data.message || data.error || "No students recognized");
+        }
+    }
+
+    async function fetchStudents() {
+        const res = await fetch("http://127.0.0.1:5000/api/student/all");
+        const data = await res.json();
+        document.getElementById('student-table-body').innerHTML = data.map(s => `
+            <tr class="hover:bg-blue-50 transition-colors">
+                <td class="p-5 font-medium">${s.name}</td>
+                <td class="p-5 text-gray-500">${s.roll}</td>
+                <td class="p-5"><span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs">${s.semester || 'N/A'}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    async function fetchReports() {
+        const res = await fetch("http://127.0.0.1:5000/api/attendance/report");
+        const data = await res.json();
+        document.getElementById('attendance-table-body').innerHTML = data.map(r => `
+            <tr class="hover:bg-blue-50 transition-colors">
+                <td class="p-5 font-medium">${r.name}</td>
+                <td class="p-5 text-xs font-mono text-gray-400">${r.lecture_id}</td>
+                <td class="p-5 text-sm">${r.timestamp}</td>
+                <td class="p-5"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">${r.status}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    async function uploadBulk() {
+        const excel = document.getElementById("excelFile").files[0];
+        const zip = document.getElementById("zipFile").files[0];
+        if(!excel || !zip) return alert("Select files");
+        const formData = new FormData();
+        formData.append("excel", excel);
+        formData.append("images", zip);
+        log("Uploading bulk dataset...");
+        const res = await fetch("http://127.0.0.1:5000/api/student/bulk-register", { method: "POST", body: formData });
+        const data = await res.json();
+        log(data.message || data.error);
+    }
+
+    function exportToCSV() {
+        let csv = "Name,Lecture_ID,Timestamp,Status\n";
+        const rows = document.querySelectorAll("#attendance-table-body tr");
+        rows.forEach(row => {
+            const cols = row.querySelectorAll("td");
+            csv += Array.from(cols).map(c => c.innerText).join(",") + "\n";
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'attendance_report.csv');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+
+</body>
+</html>

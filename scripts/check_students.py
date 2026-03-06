@@ -1,17 +1,17 @@
 import os, sys
 sys.path.append(os.getcwd())
-from database.db import student_collection
+from database.db import students_collection
 import numpy as np
 
-count = student_collection.count_documents({})
+count = students_collection.count_documents({})
 print(f"Student documents count: {count}")
 
-sample = student_collection.find_one()
+sample = students_collection.find_one()
 print("Sample student:")
 print(sample)
 
 # Analyze embeddings
-all_docs = list(student_collection.find({}))
+all_docs = list(students_collection.find({}))
 for i, d in enumerate(all_docs[:5]):
     emb = np.array(d.get('embedding', []))
     if emb.size == 0:
