@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Face Attendance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .toggle-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .toggle-text a {
+            color: #667eea;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .toggle-text a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+            display: block;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+            display: block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <!-- Login Form -->
+            <div id="loginForm">
+                <h1 class="form-title">Login</h1>
+                <div id="loginAlert" class="alert"></div>
+                
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" required placeholder="your@email.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required placeholder="Enter your password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <div class="loading" id="loginLoading">
+                        <div class="spinner"></div>
+                    </div>
+                </form>
+
+                <div class="toggle-text">
+                    Don't have an account? <a onclick="toggleForms()">Sign up here</a>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <h1 class="form-title">Sign Up</h1>
+                <div id="registerAlert" class="alert"></div>
+                
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="registerName">Full Name</label>
+                        <input type="text" id="registerName" required placeholder="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <input type="email" id="registerEmail" required placeholder="your@email.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" required placeholder="At least 6 characters">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="registerRole">Role</label>
+                        <select id="registerRole">
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                    <div class="loading" id="registerLoading">
+                        <div class="spinner"></div>
+                    </div>
+                </form>
+
+                <div class="toggle-text">
+                    Already have an account? <a onclick="toggleForms()">Login here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '{{ api_base }}/auth';
+
+        function toggleForms() {
+            document.getElementById('loginForm').classList.toggle('hidden');
+            document.getElementById('registerForm').classList.toggle('hidden');
+            clearAlerts();
+        }
+
+        function clearAlerts() {
+            document.getElementById('loginAlert').textContent = '';
+            document.getElementById('loginAlert').classList.remove('alert-error', 'alert-success');
+            document.getElementById('registerAlert').textContent = '';
+            document.getElementById('registerAlert').classList.remove('alert-error', 'alert-success');
+        }
+
+        function showAlert(elementId, message, type) {
+            const alert = document.getElementById(elementId);
+            alert.textContent = message;
+            alert.classList.remove('alert-error', 'alert-success');
+            alert.classList.add(type === 'error' ? 'alert-error' : 'alert-success');
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const loading = document.getElementById('loginLoading');
+
+            loading.classList.add('active');
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store token
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    showAlert('loginAlert', 'Login successful! Redirecting...', 'success');
+                    
+                    // Redirect to app
+                    setTimeout(() => {
+                        window.location.href = '/app';
+                    }, 1000);
+                } else {
+                    showAlert('loginAlert', data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showAlert('loginAlert', 'Connection error: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const full_name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const role = document.getElementById('registerRole').value;
+            const loading = document.getElementById('registerLoading');
+
+            loading.classList.add('active');
+
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, full_name, role })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert('registerAlert', 'Registration successful! Please login.', 'success');
+                    
+                    // Clear form and switch to login
+                    setTimeout(() => {
+                        document.getElementById('registerForm').reset();
+                        toggleForms();
+                    }, 1000);
+                } else {
+                    showAlert('registerAlert', data.error || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showAlert('registerAlert', 'Connection error: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
