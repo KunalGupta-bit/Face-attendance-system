@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login – AI Attendance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%); }
+        .tab-active { background: #059669; color: white; }
+        .tab-inactive { background: transparent; color: #6ee7b7; }
+        #facePreview { display:none; }
+        .spinner { border:3px solid rgba(255,255,255,0.3); border-top:3px solid white; border-radius:50%; width:20px; height:20px; animation:spin 1s linear infinite; display:inline-block; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+<div class="w-full max-w-md">
+    <!-- Back -->
+    <a href="/" class="flex items-center gap-2 text-green-300 hover:text-white mb-6 transition-colors text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back to Home
+    </a>
+
+    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-emerald-600 to-green-500 p-8 text-white text-center">
+            <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold">Student Portal</h1>
+            <p class="text-green-100 text-sm mt-1">Register or login to access your attendance</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b">
+            <button id="tab-login" onclick="switchTab('login')" class="flex-1 py-3 text-sm font-semibold tab-active transition-all">Login</button>
+            <button id="tab-register" onclick="switchTab('register')" class="flex-1 py-3 text-sm font-semibold tab-inactive transition-all">Register</button>
+        </div>
+
+        <div class="p-8">
+            <!-- Alert -->
+            <div id="alert" class="hidden mb-4 p-3 rounded-xl text-sm font-medium"></div>
+
+            <!-- LOGIN FORM -->
+            <div id="form-login">
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="loginEmail" required placeholder="student@example.com"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="loginPassword" required placeholder="Your password"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    </div>
+                    <button type="submit" id="loginBtn"
+                        class="w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                        Login
+                    </button>
+                </form>
+                <p class="text-center text-sm text-gray-500 mt-4">
+                    No account? <button onclick="switchTab('register')" class="text-emerald-600 font-semibold hover:underline">Register here</button>
+                </p>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div id="form-register" class="hidden">
+                <form onsubmit="handleRegister(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="regName" required placeholder="John Doe"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="regEmail" required placeholder="student@example.com"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="regPassword" required placeholder="At least 6 characters"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Roll Number</label>
+                        <input type="text" id="regRoll" required placeholder="e.g. CS2021001"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+                        <select id="regSemester" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+
+                    <!-- Face Capture -->
+                    <div class="border-2 border-dashed border-emerald-200 rounded-2xl p-4 bg-emerald-50">
+                        <p class="text-sm font-semibold text-emerald-700 mb-3 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            Face Registration (Required)
+                        </p>
+                        <video id="regVideo" autoplay class="w-full rounded-xl bg-black aspect-video object-cover mb-3"></video>
+                        <canvas id="regCanvas" class="hidden"></canvas>
+                        <img id="facePreview" class="w-full rounded-xl mb-3 border-2 border-emerald-400" alt="Captured face">
+                        <div class="flex gap-2">
+                            <button type="button" onclick="captureRegFace()"
+                                class="flex-1 bg-emerald-600 text-white text-sm font-bold py-2 rounded-xl hover:bg-emerald-700 transition-colors">
+                                📸 Capture Face
+                            </button>
+                            <button type="button" onclick="retakeRegFace()" id="retakeBtn" class="hidden flex-1 bg-gray-200 text-gray-700 text-sm font-bold py-2 rounded-xl hover:bg-gray-300 transition-colors">
+                                🔄 Retake
+                            </button>
+                        </div>
+                        <p id="faceStatus" class="text-xs text-gray-500 mt-2 text-center">Position your face in the camera and click Capture</p>
+                    </div>
+
+                    <button type="submit" id="regBtn"
+                        class="w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                        Create Account
+                    </button>
+                </form>
+                <p class="text-center text-sm text-gray-500 mt-4">
+                    Already registered? <button onclick="switchTab('login')" class="text-emerald-600 font-semibold hover:underline">Login here</button>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = '{{ api_base }}';
+    let capturedFaceImage = null;
+    let videoStream = null;
+
+    function switchTab(tab) {
+        document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+        document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
+        document.getElementById('tab-login').className = `flex-1 py-3 text-sm font-semibold transition-all ${tab === 'login' ? 'tab-active' : 'tab-inactive'}`;
+        document.getElementById('tab-register').className = `flex-1 py-3 text-sm font-semibold transition-all ${tab === 'register' ? 'tab-active' : 'tab-inactive'}`;
+        clearAlert();
+        if (tab === 'register') startCamera();
+        else stopCamera();
+    }
+
+    function showAlert(msg, type) {
+        const el = document.getElementById('alert');
+        el.textContent = msg;
+        el.className = `mb-4 p-3 rounded-xl text-sm font-medium ${type === 'error' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'}`;
+        el.classList.remove('hidden');
+    }
+
+    function clearAlert() {
+        document.getElementById('alert').classList.add('hidden');
+    }
+
+    function startCamera() {
+        const video = document.getElementById('regVideo');
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => { videoStream = stream; video.srcObject = stream; })
+            .catch(err => showAlert('Camera access denied: ' + err.message, 'error'));
+    }
+
+    function stopCamera() {
+        if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+    }
+
+    function captureRegFace() {
+        const video = document.getElementById('regVideo');
+        const canvas = document.getElementById('regCanvas');
+        const preview = document.getElementById('facePreview');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        capturedFaceImage = canvas.toDataURL('image/jpeg', 0.9);
+        preview.src = capturedFaceImage;
+        preview.style.display = 'block';
+        video.style.display = 'none';
+        document.getElementById('retakeBtn').classList.remove('hidden');
+        document.getElementById('faceStatus').textContent = '✅ Face captured! You can retake if needed.';
+        document.getElementById('faceStatus').className = 'text-xs text-emerald-600 mt-2 text-center font-medium';
+    }
+
+    function retakeRegFace() {
+        capturedFaceImage = null;
+        document.getElementById('facePreview').style.display = 'none';
+        document.getElementById('regVideo').style.display = 'block';
+        document.getElementById('retakeBtn').classList.add('hidden');
+        document.getElementById('faceStatus').textContent = 'Position your face in the camera and click Capture';
+        document.getElementById('faceStatus').className = 'text-xs text-gray-500 mt-2 text-center';
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        clearAlert();
+        const btn = document.getElementById('loginBtn');
+        btn.innerHTML = '<span class="spinner"></span> Logging in...';
+        btn.disabled = true;
+        try {
+            const res = await fetch(`${API}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('loginEmail').value,
+                    password: document.getElementById('loginPassword').value
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                if (data.user.role !== 'student') {
+                    showAlert('This portal is for students only. Please use the correct portal.', 'error');
+                    return;
+                }
+                localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                showAlert('Login successful! Redirecting...', 'success');
+                setTimeout(() => window.location.href = '/portal/student', 1000);
+            } else {
+                showAlert(data.error || 'Login failed', 'error');
+            }
+        } catch (err) {
+            showAlert('Connection error: ' + err.message, 'error');
+        } finally {
+            btn.innerHTML = 'Login';
+            btn.disabled = false;
+        }
+    }
+
+    async function handleRegister(e) {
+        e.preventDefault();
+        clearAlert();
+        if (!capturedFaceImage) {
+            showAlert('Please capture your face photo before registering.', 'error');
+            return;
+        }
+        const btn = document.getElementById('regBtn');
+        btn.innerHTML = '<span class="spinner"></span> Creating account...';
+        btn.disabled = true;
+        try {
+            // Step 1: Create auth account
+            const regRes = await fetch(`${API}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('regEmail').value,
+                    password: document.getElementById('regPassword').value,
+                    full_name: document.getElementById('regName').value,
+                    role: 'student'
+                })
+            });
+            const regData = await regRes.json();
+            if (!regRes.ok) { showAlert(regData.error || 'Registration failed', 'error'); return; }
+
+            // Step 2: Register face embedding
+            const faceRes = await fetch(`${API}/student/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: document.getElementById('regName').value,
+                    roll: document.getElementById('regRoll').value,
+                    semester: document.getElementById('regSemester').value,
+                    image: capturedFaceImage,
+                    email: document.getElementById('regEmail').value
+                })
+            });
+            const faceData = await faceRes.json();
+            if (!faceRes.ok) {
+                showAlert('Account created but face registration failed: ' + (faceData.error || 'Unknown error') + '. You can update your face from your portal.', 'error');
+            } else {
+                showAlert('Account created successfully! Please login.', 'success');
+                stopCamera();
+                setTimeout(() => switchTab('login'), 1500);
+            }
+        } catch (err) {
+            showAlert('Connection error: ' + err.message, 'error');
+        } finally {
+            btn.innerHTML = 'Create Account';
+            btn.disabled = false;
+        }
+    }
+
+    // Check if already logged in
+    window.addEventListener('load', () => {
+        const token = localStorage.getItem('access_token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (token && user.role === 'student') window.location.href = '/portal/student';
+    });
+</script>
+</body>
+</html>

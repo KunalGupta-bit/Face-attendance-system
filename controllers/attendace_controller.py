@@ -211,3 +211,32 @@ def get_attendance_report():
         return jsonify(report), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+def get_my_attendance():
+    """
+    Get attendance records for the currently logged-in student.
+    Matches by student name stored in the JWT claims.
+    """
+    try:
+        from flask_jwt_extended import get_jwt
+        claims = get_jwt()
+        full_name = claims.get("full_name", "")
+
+        if not full_name:
+            return jsonify({"error": "Could not identify user"}), 400
+
+        records = list(attendance_collection.find({"name": full_name}).sort("timestamp", -1))
+
+        output = []
+        for r in records:
+            output.append({
+                "_id": str(r["_id"]),
+                "lecture_id": str(r["lecture_id"]),
+                "name": r["name"],
+                "timestamp": r["timestamp"].strftime("%Y-%m-%d %H:%M:%S"),
+                "status": r["status"]
+            })
+
+        return jsonify(output), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

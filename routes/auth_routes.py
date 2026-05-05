@@ -1,5 +1,5 @@
 from flask import Blueprint
-from controllers.auth_controller import register, login, get_current_user, logout
+from controllers.auth_controller import register, login, get_current_user, logout, register_admin
 from flask_jwt_extended import jwt_required
 
 auth_bp = Blueprint("auth", __name__)
@@ -8,6 +8,11 @@ auth_bp = Blueprint("auth", __name__)
 def auth_register():
     """Register a new user"""
     return register()
+
+@auth_bp.route("/register-admin", methods=["POST"])
+def auth_register_admin():
+    """Register a new admin user (first admin is free; subsequent require secret key)"""
+    return register_admin()
 
 @auth_bp.route("/login", methods=["POST"])
 def auth_login():

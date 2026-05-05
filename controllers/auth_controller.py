@@ -132,3 +132,62 @@ def logout():
     In production, you could implement token blacklisting here.
     """
     return jsonify({"message": "Logout successful"}), 200
+
+def register_admin():
+    """
+    Register a new admin user.
+    The first admin can be created freely.
+    Subsequent admins require ADMIN_SECRET_KEY from .env.
+
+    Expected JSON:
+    {
+        "email": "admin@example.com",
+        "password": "password123",
+        "full_name": "System Admin",
+        "admin_secret": "optional-secret-key"
+    }
+    """
+    import os
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        email = data.get("email", "").strip()
+        password = data.get("password", "").strip()
+        full_name = data.get("full_name", "").strip()
+        admin_secret = data.get("admin_secret", "").strip()
+
+        if not email or not password or not full_name:
+            return jsonify({"error": "Email, password, and full name are required"}), 400
+
+        if "@" not in email or "." not in email:
+            return jsonify({"error": "Invalid email format"}), 400
+
+        if len(password) < 6:
+            return jsonify({"error": "Password must be at least 6 characters long"}), 400
+
+        # Check if any admin already exists
+        from models.auth_model import users_collection
+        existing_admin = users_collection.find_one({"role": "admin"})
+
+        if existing_admin:
+            # Require secret key for subsequent admins
+            required_secret = os.getenv("ADMIN_SECRET_KEY", "")
+            if not required_secret:
+                return jsonify({"error": "ADMIN_SECRET_KEY is not configured in .env"}), 500
+            if admin_secret != required_secret:
+                return jsonify({"error": "Invalid admin secret key"}), 403
+
+        result = User.create_user(email, password, full_name, "admin")
+
+        if "error" in result:
+            return jsonify(result), 400
+
+        return jsonify({
+            "message": "Admin account created successfully",
+            "user": result
+        }), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

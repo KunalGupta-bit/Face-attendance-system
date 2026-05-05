@@ -46,25 +46,53 @@ def missing_token_callback(error):
 
 # ==================== WEB PAGES ====================
 
+API_BASE = "http://localhost:5000/api"
+
 @app.route("/")
 def index():
-    """Home page - redirects to app"""
-    return redirect("/app")
-
-@app.route("/login", methods=["GET"])
-def login():
-    """Login/Register page"""
-    return render_template("login.html", api_base="http://localhost:5000/api")
-
-@app.route("/dashboard", methods=["GET"])
-def dashboard():
-    """Dashboard page (frontend checks authentication)"""
-    return render_template("dashboard.html", api_base="http://localhost:5000/api")
+    """Landing page — role selector"""
+    return render_template("landing.html")
 
 @app.route("/app", methods=["GET"])
 def attendance_app():
-    """Attendance system app"""
+    """Legacy attendance app"""
     return render_template("index.html")
+
+@app.route("/login", methods=["GET"])
+def login():
+    """Legacy login page"""
+    return render_template("login.html", api_base=API_BASE)
+
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    """Legacy dashboard"""
+    return render_template("dashboard.html", api_base=API_BASE)
+
+# ---- Auth portals ----
+@app.route("/auth/student", methods=["GET"])
+def auth_student():
+    return render_template("auth_student.html", api_base=API_BASE)
+
+@app.route("/auth/teacher", methods=["GET"])
+def auth_teacher():
+    return render_template("auth_teacher.html", api_base=API_BASE)
+
+@app.route("/auth/admin", methods=["GET"])
+def auth_admin():
+    return render_template("auth_admin.html", api_base=API_BASE)
+
+# ---- Role portals ----
+@app.route("/portal/student", methods=["GET"])
+def portal_student():
+    return render_template("portal_student.html", api_base=API_BASE)
+
+@app.route("/portal/teacher", methods=["GET"])
+def portal_teacher():
+    return render_template("portal_teacher.html", api_base=API_BASE)
+
+@app.route("/portal/admin", methods=["GET"])
+def portal_admin():
+    return render_template("portal_admin.html", api_base=API_BASE)
 
 @app.route("/api")
 def api_info():
@@ -73,9 +101,10 @@ def api_info():
         "message": "Face Recognition Attendance API",
         "version": "1.0.0",
         "web_pages": {
-            "login": "/login",
-            "dashboard": "/dashboard",
-            "home": "/"
+            "home": "/",
+            "student_auth": "/auth/student",
+            "teacher_auth": "/auth/teacher",
+            "admin_auth": "/auth/admin"
         },
         "api_endpoints": {
             "authentication": "/api/auth/",
