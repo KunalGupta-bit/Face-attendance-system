@@ -1,6 +1,6 @@
-from flask import Flask, jsonify, render_template, redirect, request
+from flask import Flask, jsonify, render_template
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import JWTManager
 from config import Config
 from routes.student_routes import student_bp
 from routes.attendance_routes import attendance_bp
@@ -52,21 +52,6 @@ API_BASE = "http://localhost:5000/api"
 def index():
     """Landing page — role selector"""
     return render_template("landing.html")
-
-@app.route("/app", methods=["GET"])
-def attendance_app():
-    """Legacy attendance app"""
-    return render_template("index.html")
-
-@app.route("/login", methods=["GET"])
-def login():
-    """Legacy login page"""
-    return render_template("login.html", api_base=API_BASE)
-
-@app.route("/dashboard", methods=["GET"])
-def dashboard():
-    """Legacy dashboard"""
-    return render_template("dashboard.html", api_base=API_BASE)
 
 # ---- Auth portals ----
 @app.route("/auth/student", methods=["GET"])
