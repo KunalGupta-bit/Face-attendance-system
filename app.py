@@ -1,6 +1,6 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, redirect, request
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, get_jwt_identity, verify_jwt_in_request
 from config import Config
 from routes.student_routes import student_bp
 from routes.attendance_routes import attendance_bp
@@ -10,7 +10,7 @@ from routes.auth_routes import auth_bp
 app = Flask(__name__, template_folder="templates")
 
 # JWT Configuration
-app.config["JWT_SECRET_KEY"] = Config.JWT_SECRET_KEY
+app.config["JWT_SECRET_KEY"] = Config.SECRET_KEY or "your-secret-key-change-this"
 app.config["JWT_ALGORITHM"] = "HS256"
 jwt = JWTManager(app)
 
@@ -46,13 +46,27 @@ def missing_token_callback(error):
 
 # ==================== WEB PAGES ====================
 
-# API_BASE = "http://localhost:5000/api"
-API_BASE = "/api"
+API_BASE = "http://localhost:5000/api"
 
 @app.route("/")
 def index():
     """Landing page — role selector"""
     return render_template("landing.html")
+
+@app.route("/app", methods=["GET"])
+def attendance_app():
+    """Legacy attendance app"""
+    return render_template("index.html")
+
+@app.route("/login", methods=["GET"])
+def login():
+    """Legacy login page"""
+    return render_template("login.html", api_base=API_BASE)
+
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    """Legacy dashboard"""
+    return render_template("dashboard.html", api_base=API_BASE)
 
 # ---- Auth portals ----
 @app.route("/auth/student", methods=["GET"])
@@ -100,12 +114,6 @@ def api_info():
         }
     }
 
-# if __name__ == "__main__":
-#     # debug=True automatically restarts the server when you save code changes
-#     app.run(debug=True, port=5000)
-
-import os
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    app.run(host="0.0.0.0", port=port)
+    # debug=True automatically restarts the server when you save code changes
+    app.run(debug=True, port=5000)
