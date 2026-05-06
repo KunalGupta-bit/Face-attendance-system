@@ -10,7 +10,7 @@ from routes.auth_routes import auth_bp
 app = Flask(__name__, template_folder="templates")
 
 # JWT Configuration
-app.config["JWT_SECRET_KEY"] = Config.SECRET_KEY or "your-secret-key-change-this"
+app.config["JWT_SECRET_KEY"] = Config.JWT_SECRET_KEY
 app.config["JWT_ALGORITHM"] = "HS256"
 jwt = JWTManager(app)
 
@@ -46,7 +46,8 @@ def missing_token_callback(error):
 
 # ==================== WEB PAGES ====================
 
-API_BASE = "http://localhost:5000/api"
+# API_BASE = "http://localhost:5000/api"
+API_BASE = "/api"
 
 @app.route("/")
 def index():
@@ -99,6 +100,12 @@ def api_info():
         }
     }
 
+# if __name__ == "__main__":
+#     # debug=True automatically restarts the server when you save code changes
+#     app.run(debug=True, port=5000)
+
+import os
+
 if __name__ == "__main__":
-    # debug=True automatically restarts the server when you save code changes
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 7860))
+    app.run(host="0.0.0.0", port=port)
